@@ -1,0 +1,91 @@
+# Per-individual input template for the Adjusted Giving Rate model.
+# Copy to data/individuals/<slug>.yaml and fill in.
+#
+# Every value carries `source` and `basis`. `basis` must be one of:
+#   observed    - taken directly from a filing, disclosure, or market feed
+#   estimated   - fitted from data (event studies, comparables, transactions)
+#   distributed - genuinely uncertain; specify a distribution, never a point
+# Per docs/13-interpretation-and-validation.md 13.3, no important parameter
+# may be a bare point estimate lacking all three.
+
+id: ""                      # slug
+name: ""
+as_of: ""                   # YYYY-MM-DD; all valuations marked to this date
+
+wealth:
+  headline:      { value: null, unit: USD, source: "", basis: observed }
+  cash:          { value: null, unit: USD, source: "", basis: observed }
+  public_equity: { value: null, unit: USD, source: "", basis: observed }
+  private_equity: { value: null, unit: USD, source: "", basis: estimated }
+  real_estate:   { value: null, unit: USD, source: "", basis: estimated }
+  other:         { value: null, unit: USD, source: "", basis: estimated }
+
+public_positions:
+  - ticker: ""
+    P0:        { value: null, source: "", basis: observed }
+    Q:         { value: null, source: "", basis: observed }
+    ADV:       { value: null, source: "", basis: observed }
+    sigma:     { value: null, source: "", basis: observed }
+    PE:        { value: null, source: "", basis: observed }
+    PS:        { value: null, source: "", basis: observed }
+    EV_EBITDA: { value: null, source: "", basis: observed }
+    FCF_yield: { value: null, source: "", basis: observed }
+    short_interest: { value: null, source: "", basis: observed }
+    ownership:
+      s:            { value: null, source: "", basis: observed }
+      s_min:        { value: null, source: "", basis: distributed
+                    , dist: { family: beta, params: {} } }
+      voting_pct:   { value: null, source: "", basis: observed }
+      dual_class:   { present: false, ratio: null, source: "" }
+      restrictions: []          # lockups, standstills, transfer limits
+    lambda:   { basis: distributed, dist: { family: lognormal, params: {} }, source: "" }
+    eta:      { basis: distributed, dist: { family: lognormal, params: {} }, source: "" }
+    delta_c:  { basis: distributed, dist: { family: beta,      params: {} }, source: "" }
+    # lambda and eta are not separately identified (docs/06 §6.5) -
+    # specify their correlation here, do not draw them independently.
+    lambda_eta_correlation: { value: null, source: "" }
+    q_star:   { value: null, note: "max economically relinquishable quantity" }
+
+private_positions:
+  - name: ""
+    V_last_round: { value: null, date: "", source: "", basis: observed }
+    D_M: { basis: distributed, dist: { family: beta, params: {} }, source: "" }
+    D_B: { basis: distributed, dist: { family: beta, params: {} }, source: "" }
+    D_I: { basis: distributed, dist: { family: beta, params: {} }, source: "" }
+    secondary_transactions: []   # { date, price, size, source }
+    tender_offers: []            # { date, price, size, source }
+
+founder_dependence:
+  F: { basis: distributed, dist: { family: beta, params: {} }, source: "" }
+  logistic_p_of_s:
+    a: { value: null, basis: estimated, source: "" }
+    b: { value: null, basis: estimated, source: "" }
+  V_S: { value: null, basis: estimated, source: "" }
+  V_F: { value: null, basis: estimated, source: "" }
+
+giving:
+  # Aggregates, for cross-checking the donation series below.
+  external:   { value: null, source: "", basis: observed }
+  foundation: { value: null, source: "", basis: observed }
+  daf:        { value: null, source: "", basis: observed }
+  controlled: { value: null, source: "", basis: observed }
+  distributed: { value: null, source: "", basis: observed }
+
+  weights:
+    alpha: { value: null, note: "foundation weight, [0,1]" }
+    beta:  { value: null, note: "DAF weight, [0,1]" }
+    gamma: { value: null, note: "donor-controlled weight, [0,1]" }
+
+  # The donation series is required, not optional. A lifetime aggregate
+  # cannot be compounded (docs/08 §8.3).
+  donations:
+    - date: ""       # YYYY-MM-DD
+      amount: null
+      recipient: ""
+      category: ""   # external | foundation | daf | controlled
+      irrevocable: null      # bool -> feeds G_legal
+      independently_deployed: null   # bool -> feeds G_distributed
+      w: null        # independence/deployment weight
+      source: ""
+
+notes: ""
